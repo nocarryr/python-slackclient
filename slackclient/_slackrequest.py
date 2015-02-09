@@ -1,6 +1,11 @@
 import time
-import urllib
-import urllib2
+try:
+    from urllib2 import urlopen
+    from urllib import urlencode
+except ImportError:
+    from urllib.request import urlopen
+    from urllib.parse import urlencode
+    
 
 from _config import config
 
@@ -12,7 +17,7 @@ class SlackRequest(object):
         if domain is None:
             domain = config.DOMAIN
         post_data["token"] = token
-        post_data = urllib.urlencode(post_data)
+        post_data = urlencode(post_data)
         url = 'https://{}/api/{}'.format(domain, request)
-        return urllib2.urlopen(url, post_data)
+        return urlopen(url, post_data)
 
