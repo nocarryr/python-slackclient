@@ -3,7 +3,11 @@ class Channel(object):
         self.server = server
         self.name = name
         self.id = id
-        self.members = members
+        self.members = {}
+        for member in members:
+            if isinstance(member, basestring):
+                member = self.server.get_or_create_user(id=member)
+            self.members[member.id] = member
 
     def __eq__(self, compare_str):
         if self.name == compare_str or self.id == compare_str:

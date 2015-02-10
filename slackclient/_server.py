@@ -1,6 +1,7 @@
 from _config import config
 from _slackrequest import SlackRequest
 from _channel import Channel
+from _user import User
 from _util import SearchList
 
 from websocket import create_connection
@@ -15,7 +16,7 @@ class Server(object):
         self.domain = None
         self.login_data = None
         self.websocket = None
-        self.users = SearchList()
+        self.users = {}
         self.channels = SearchList()
         self.connected = False
         self.pingcounter = 0
@@ -67,6 +68,31 @@ class Server(object):
             if "members" not in channel:
                 channel["members"] = []
             self.attach_channel(channel["name"], channel["id"], channel["members"])
+        
+    def get_all_channels(self):
+        reply = json.loads(self.api_call('channels.list'))
+        if not reply.get('ok'):
+            raise SlackLoginError
+        self.parse_channel_data(reply['channels'])
+        return self.channels
+        
+    def get_all_users(self):
+        reply = json.loads(self.api_call('users.list'))
+        if not reply.get('ok'):
+            raise SlackLoginError
+        for user_data in reply['members']:
+            self.get_or_create_user(**user_data)
+        return self.users
+        
+    def get_or_create_user(self, **kwargs):
+        uid = kwargs.get('id')
+        user = self.users.get(uid)
+        if user is None:
+            user = User(**kwargs)
+            self.users[uid] = user
+        else:
+            user.update(**kwargs)
+        return user
 
     def send_to_websocket(self, data):
         """Send (data) directly to the websocket."""
