@@ -17,7 +17,7 @@ class Group(ChannelBase):
         self.topic.update(**kwargs.get('topic', {}))
         self.purpose.update(**kwargs.get('purpose', {}))
     def get_history(self, **kwargs):
-        kwargs['group'] = self.id
+        kwargs['channel'] = self.id
         return self._get_history('groups.history', **kwargs)
         
 class TopicBase(CreatorSlackObject):
