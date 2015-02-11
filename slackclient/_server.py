@@ -19,6 +19,7 @@ class Server(object):
         self.websocket = None
         self.users = {}
         self.channels = SearchList()
+        self.channels_by_id = {}
         self.groups = {}
         self.connected = False
         self.pingcounter = 0
@@ -74,7 +75,7 @@ class Server(object):
     def get_all_channels(self):
         reply = self.api_call_parse('channels.list')
         self.parse_channel_data(reply['channels'])
-        return self.channels
+        return self.channels_by_id
         
     def get_all_groups(self):
         reply = self.api_call_parse('groups.list')
@@ -119,7 +120,10 @@ class Server(object):
 
     def attach_channel(self, **kwargs):
         kwargs['server'] = self
-        self.channels.append(Channel(**kwargs))
+        channel = Channel(**kwargs)
+        self.channels.append(channel)
+        self.channels_by_id[channel.id] = channel
+        return channel
 
     def join_channel(self, name):
         print(self.api_requester.do(self.token, "channels.join?name={}".format(name)).read())
