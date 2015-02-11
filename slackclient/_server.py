@@ -131,7 +131,7 @@ class Server(object):
     def api_call_parse(self, method, **kwargs):
         reply = json.loads(self.api_call(method, **kwargs))
         if not reply.get('ok'):
-            raise SlackLoginError
+            raise SlackLoginError(reply)
         return reply
         
     def api_call(self, method, **kwargs):
@@ -142,4 +142,7 @@ class SlackConnectionError(Exception):
     pass
 
 class SlackLoginError(Exception):
-    pass
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
