@@ -1,6 +1,7 @@
 from _config import config
 from _slackrequest import SlackRequest
 from _channel import Channel
+from _group import Group
 from _user import User
 from _util import SearchList
 
@@ -18,6 +19,7 @@ class Server(object):
         self.websocket = None
         self.users = {}
         self.channels = SearchList()
+        self.groups = {}
         self.connected = False
         self.pingcounter = 0
         self.api_requester = SlackRequest()
@@ -67,19 +69,23 @@ class Server(object):
                 channel["name"] = channel["id"]
             if "members" not in channel:
                 channel["members"] = []
-            self.attach_channel(channel["name"], channel["id"], channel["members"])
+            self.attach_channel(**channel)
         
     def get_all_channels(self):
-        reply = json.loads(self.api_call('channels.list'))
-        if not reply.get('ok'):
-            raise SlackLoginError
+        reply = self.api_call_parse('channels.list')
         self.parse_channel_data(reply['channels'])
         return self.channels
         
+    def get_all_groups(self):
+        reply = self.api_call_parse('groups.list')
+        for group_data in reply['groups']:
+            group_data['server'] = self
+            group = Group(**group_data)
+            self.groups[group.id] = group
+        return self.groups
+        
     def get_all_users(self):
-        reply = json.loads(self.api_call('users.list'))
-        if not reply.get('ok'):
-            raise SlackLoginError
+        reply = self.api_call_parse('users.list')
         for user_data in reply['members']:
             self.get_or_create_user(**user_data)
         return self.users
@@ -111,12 +117,19 @@ class Server(object):
             except:
                 return data.rstrip()
 
-    def attach_channel(self, name, id, members=[]):
-        self.channels.append(Channel(self, name, id, members))
+    def attach_channel(self, **kwargs):
+        kwargs['server'] = self
+        self.channels.append(Channel(**kwargs))
 
     def join_channel(self, name):
         print(self.api_requester.do(self.token, "channels.join?name={}".format(name)).read())
 
+    def api_call_parse(self, method, **kwargs):
+        reply = json.loads(self.api_call(method, **kwargs))
+        if not reply.get('ok'):
+            raise SlackLoginError
+        return reply
+        
     def api_call(self, method, **kwargs):
         reply = self.api_requester.do(self.token, method, kwargs)
         return reply.read()

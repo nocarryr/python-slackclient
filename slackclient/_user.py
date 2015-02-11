@@ -1,20 +1,39 @@
+from _slackobject import SlackObject
 
-class User(object):
-    _conf_attrs = ['name']
+class User(SlackObject):
+    _parameters = [
+        'id', 
+        'name', 
+        'deleted', 
+        'color', 
+        'is_admin', 
+        'is_owner', 
+        'is_primary_owner', 
+        'is_restricted', 
+        'is_ultra_restricted', 
+        'has_files', 
+    ]
     def __init__(self, **kwargs):
-        self.id = kwargs.get('id')
-        self.name = kwargs.get('name')
+        super(User, self).__init__(**kwargs)
+        pkwargs = kwargs.get('profile', {})
+        pkwargs['server'] = self.server
+        self.profile = Profile(**pkwargs)
     def update(self, **kwargs):
-        for attr in self._conf_attrs:
-            val = kwargs.get(attr)
-            if val is None:
-                continue
-            if getattr(self, attr, None) == val:
-                continue
-            setattr(self, attr, val)
+        super(User, self).update(**kwargs)
+        if not hasattr(self, 'profile'):
+            return
+        self.profile.update(**kwargs.get('profile', {}))
     def __repr__(self):
         return str(self)
     def __str__(self):
         if self.name is not None:
             return self.name
         return self.id
+
+class Profile(SlackObject):
+    _parameters = [
+        'first_name', 
+        'last_name', 
+        'email', 
+    ]
+    
