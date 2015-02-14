@@ -6,9 +6,11 @@ class Group(ChannelBase):
         super(Group, self).__init__(**kwargs)
         tkwargs = kwargs.get('topic', {})
         tkwargs['server'] = self.server
+        tkwargs['data'] = self.data.get('topic', {})
         self.topic = Topic(**tkwargs)
         pkwargs = kwargs.get('purpose', {})
         pkwargs['server'] = self.server
+        pkwargs['data'] = self.data.get('purpose', {})
         self.purpose = Purpose(**pkwargs)
     def update(self, **kwargs):
         super(Group, self).update(**kwargs)

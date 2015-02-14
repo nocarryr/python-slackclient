@@ -30,6 +30,8 @@ class ChannelBase(CreatorSlackObject):
         self.members[member.id] = member
         
     def add_message(self, **kwargs):
+        data = kwargs.copy()
+        kwargs['data'] = data
         kwargs.setdefault('server', self.server)
         msg = Message(**kwargs)
         if msg.id in self.messages:

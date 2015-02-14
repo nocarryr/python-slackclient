@@ -80,6 +80,8 @@ class Server(object):
     def get_all_groups(self):
         reply = self.api_call_parse('groups.list')
         for group_data in reply['groups']:
+            data = group_data.copy()
+            group_data['data'] = data
             group_data['server'] = self
             group = Group(**group_data)
             self.groups[group.id] = group
@@ -92,6 +94,8 @@ class Server(object):
         return self.users
         
     def get_or_create_user(self, **kwargs):
+        data = kwargs.copy()
+        kwargs['data'] = data
         uid = kwargs.get('id')
         user = self.users.get(uid)
         if user is None:
@@ -119,6 +123,8 @@ class Server(object):
                 return data.rstrip()
 
     def attach_channel(self, **kwargs):
+        data = kwargs.copy()
+        kwargs['data'] = data
         kwargs['server'] = self
         channel = Channel(**kwargs)
         self.channels.append(channel)

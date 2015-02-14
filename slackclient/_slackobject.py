@@ -14,6 +14,7 @@ class SlackObject(object):
     _parameters = []
     def __init__(self, **kwargs):
         self.server = kwargs.get('server')
+        self.data = kwargs.get('data')
         parameters = self.parameters = set()
         for cls in iter_bases(self):
             if not hasattr(cls, '_parameters'):
@@ -30,7 +31,24 @@ class SlackObject(object):
                 continue
             if getattr(self, key, None) == val:
                 continue
+            self.data[key] = val
             setattr(self, key, val)
+    def get(self, key, default=None):
+        if key in self.data:
+            return self.data[key]
+        return getattr(self, key, default)
+    def __getitem__(self, key):
+        if key in self.data:
+            return self.data[key]
+        if hasattr(self, key):
+            return getattr(self, key)
+        return self.data[key]
+    def keys(self):
+        return self.data.keys()
+    def values(self):
+        return self.data.values()
+    def items(self):
+        return self.data.items()
         
 class CreatorSlackObject(SlackObject):
     _parameters = ['creator']

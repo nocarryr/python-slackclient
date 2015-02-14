@@ -17,6 +17,7 @@ class User(SlackObject):
         super(User, self).__init__(**kwargs)
         pkwargs = kwargs.get('profile', {})
         pkwargs['server'] = self.server
+        pkwargs['data'] = self.data.get('profile', {})
         self.profile = Profile(**pkwargs)
     def update(self, **kwargs):
         super(User, self).update(**kwargs)
